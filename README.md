@@ -29,9 +29,6 @@ Follow these steps to run the app on your local machine:
 
 1. Clone the repository (or download the source):
 
-git clone https://github.com/yourusername/your-repo-name.git
-cd your-repo-name
-
 2. Create and activate a virtual environment (optional but recommended):
 
 python -m venv venv
