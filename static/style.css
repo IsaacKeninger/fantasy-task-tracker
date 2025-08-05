@@ -6,7 +6,7 @@
 
 @font-face {
   font-family: 'PixelGame';
-  src: url('fonts/PixelGame.ttf') format('truetype');
+  src: url('/static/fonts/PixelGame.ttf') format('truetype');
 }
 
 body {
