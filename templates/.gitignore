@@ -1,0 +1,46 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Flask settings / environment
+.env
+*.env
+
+# macOS files
+.DS_Store
+
+# Virtual environment
+venv/
+ENV/
+env/
+.venv/
+
+# VSCode settings
+.vscode/
+
+# Pytest / coverage
+.coverage
+htmlcov/
+.tox/
+.nox/
+.pytest_cache/
+
+# Static file cache or logs
+*.log
+
+# Compiled files
+*.so
+*.out
+*.o
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Node/npm (if used for frontend)
+node_modules/
+
+# Build
+dist/
+build/
+*.egg-info/

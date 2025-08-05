@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fantasy To-Do Tracker</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1 id="todoTitle">Task Tracker</h1>
+            <p>Stay organized and get things done!</p>
+        </div>
+        
+        <div class="content">
+            <div class="add-item">
+                <input type="text" id="newItemInput" placeholder="Add a new task..." onkeypress="handleKeyPress(event)">
+                <button onclick="addItem()">Add Task</button>
+            </div>
+            
+            <div class="todo-sections">
+                <div class="section">
+                    <h3>📜 To Do (<span id="todoCount">0</span>)</h3>
+                    <div id="todoItems"></div>
+                </div>
+                
+                <div class="section">
+                    <h3>✅ Completed (<span id="completedCount">0</span>)</h3>
+                    <div id="completedItems"></div>
+                </div>
+            </div>
+            
+            <div class="progress-container">
+                <div class="progress-header">
+                    <div class="progress-title">
+                        Productivity Level
+                    </div>
+                    <div class="progress-subtitle">Keep crushing those tasks!</div>
+                </div>
+                
+                <div class="xp-bar-container">
+                    <div class="xp-bar-fill" id="xpBarFill" style="width: 0%"></div>
+                    <div class="xp-text" id="xpText">0 / 0 XP</div>
+                </div>
+                
+                <div class="xp-stats">
+                    <div class="xp-stat">
+                        <span class="xp-stat-number" id="totalTasks">0</span>
+                        <span class="xp-stat-label">Total Tasks</span>
+                    </div>
+                    <div class="xp-stat">
+                        <span class="xp-stat-number" id="completedTasks">0</span>
+                        <span class="xp-stat-label">Completed</span>
+                    </div>
+                    <div class="xp-stat">
+                        <span class="xp-stat-number" id="remainingTasks">0</span>
+                        <span class="xp-stat-label">Remaining</span>
+                    </div>
+                    <div class="xp-stat">
+                        <span class="xp-stat-number" id="completionRate">0%</span>
+                        <span class="xp-stat-label">Complete</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:5000/api';
+
+        // Load todo list on page load
+        document.addEventListener('DOMContentLoaded', loadTodoList);
+
+        function handleKeyPress(event) {
+            if (event.key === 'Enter') {
+                addItem();
+            }
+        }
+
+        async function loadTodoList() {
+            try {
+                const response = await fetch(`${API_BASE}/todo`);
+                const data = await response.json();
+                updateUI(data);
+            } catch (error) {
+                console.error('Error loading todo list:', error);
+            }
+        }
+
+        async function addItem() {
+            const input = document.getElementById('newItemInput');
+            const item = input.value.trim();
+            
+            if (!item) {
+                alert('Please enter a task!');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/todo/add`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ item: item })
+                });
+                
+                const data = await response.json();
+                if (response.ok) {
+                    input.value = '';
+                    updateUI(data.todo);
+                } else {
+                    alert(data.error || 'Error adding item');
+                }
+            } catch (error) {
+                console.error('Error adding item:', error);
+               // alert('Error adding item');
+            }
+        }
+
+        async function completeItem(item) {
+            try {
+                const response = await fetch(`${API_BASE}/todo/complete`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ item: item })
+                });
+                
+                const data = await response.json();
+                if (response.ok) {
+                    updateUI(data.todo);
+                }
+            } catch (error) {
+                console.error('Error completing item:', error);
+            }
+        }
+
+        async function uncompleteItem(item) {
+            try {
+                const response = await fetch(`${API_BASE}/todo/uncomplete`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ item: item })
+                });
+                
+                const data = await response.json();
+                if (response.ok) {
+                    updateUI(data.todo);
+                }
+            } catch (error) {
+                console.error('Error uncompleting item:', error);
+            }
+        }
+
+        async function removeItem(item) {
+            if (!confirm('Are you sure you want to delete this task?')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/todo/remove`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ item: item })
+                });
+                
+                const data = await response.json();
+                if (response.ok) {
+                    updateUI(data.todo);
+                }
+            } catch (error) {
+                console.error('Error removing item:', error);
+            }
+        }
+
+        function updateUI(todoData) {
+            // Update title
+            document.getElementById('todoTitle').textContent = todoData.title;
+            
+            // Update todo items
+            const todoContainer = document.getElementById('todoItems');
+            todoContainer.innerHTML = '';
+            
+            if (todoData.items.length === 0) {
+                todoContainer.innerHTML = '<div class="empty-state">No tasks yet. Add one above!</div>';
+            } else {
+                todoData.items.forEach(item => {
+                    const itemDiv = document.createElement('div');
+                    itemDiv.className = 'todo-item';
+                    itemDiv.innerHTML = `
+                        <span class="item-text">${escapeHtml(item)}</span>
+                        <div class="item-actions">
+                            <button class="btn btn-complete" onclick="completeItem('${escapeHtml(item)}')">Complete</button>
+                            <button class="btn btn-delete" onclick="removeItem('${escapeHtml(item)}')">Delete</button>
+                        </div>
+                    `;
+                    todoContainer.appendChild(itemDiv);
+                });
+            }
+            
+            // Update completed items
+            const completedContainer = document.getElementById('completedItems');
+            completedContainer.innerHTML = '';
+            
+            if (todoData.completedItems.length === 0) {
+                completedContainer.innerHTML = '<div class="empty-state">No completed tasks yet.</div>';
+            } else {
+                todoData.completedItems.forEach(item => {
+                    const itemDiv = document.createElement('div');
+                    itemDiv.className = 'todo-item';
+                    itemDiv.innerHTML = `
+                        <span class="item-text completed-item">${escapeHtml(item)}</span>
+                        <div class="item-actions">
+                            <button class="btn btn-uncomplete" onclick="uncompleteItem('${escapeHtml(item)}')">Undo</button>
+                            <button class="btn btn-delete" onclick="removeItem('${escapeHtml(item)}')">Delete</button>
+                        </div>
+                    `;
+                    completedContainer.appendChild(itemDiv);
+                });
+            }
+            
+            // Update counts and XP progress
+            const totalTasks = todoData.items.length + todoData.completedItems.length;
+            const completedTasks = todoData.completedItems.length;
+            const remainingTasks = todoData.items.length;
+            const completionRate = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+            
+            // Calculate level and XP
+            const level = Math.floor(completedTasks / 5) + 1; // Level up every 5 completed tasks
+            const xpInCurrentLevel = completedTasks % 5;
+            const xpForNextLevel = 5;
+            const xpProgress = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
+            
+            // Update basic counts
+            document.getElementById('todoCount').textContent = remainingTasks;
+            document.getElementById('completedCount').textContent = completedTasks;
+            document.getElementById('totalTasks').textContent = totalTasks;
+            document.getElementById('completedTasks').textContent = completedTasks;
+            document.getElementById('remainingTasks').textContent = remainingTasks;
+            document.getElementById('completionRate').textContent = completionRate + '%';
+            
+            // Update XP bar
+            const xpBarFill = document.getElementById('xpBarFill');
+            const xpText = document.getElementById('xpText');
+            
+            xpBarFill.style.width = xpProgress + '%';
+            xpText.textContent = `${completedTasks} / ${totalTasks} XP`;
+            
+            // Add completion celebration effect
+            if (totalTasks > 0 && completedTasks === totalTasks) {
+                celebrateCompletion();
+            }
+        }
+
+        function celebrateCompletion() {
+            const xpBar = document.getElementById('xpBarFill');
+            xpBar.style.animation = 'none';
+            setTimeout(() => {
+                xpBar.style.animation = 'shimmer 0.5s linear infinite, celebrate 2s ease-in-out';
+            }, 10);
+        }
+
+        // Add celebration animation
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes celebrate {
+                0%, 100% { transform: scale(1); }
+                50% { transform: scale(1.02); box-shadow: 0 0 20px rgba(79, 172, 254, 0.8); }
+            }
+        `;
+        document.head.appendChild(style);
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+    </script>
+    <div class="credit">Made by Isaac Keninger</div>
+</body>
+</html>
