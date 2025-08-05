@@ -36,11 +36,11 @@ cd your-repo-name
 
 python -m venv venv
 
-# On Windows
-venv\Scripts\activate
+On Windows
+- venv\Scripts\activate
 
-# On macOS/Linux
-source venv/bin/activate
+On macOS/Linux
+- source venv/bin/activate
 
 3. Install Dependencies
 pip install -r requirements.txt
