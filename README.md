@@ -27,13 +27,12 @@ Follow these steps to run the app on your local machine:
 
 ### Setup
 
-1. **Clone the repository** (or download the source):
+1. Clone the repository (or download the source):
 
-```bash
 git clone https://github.com/yourusername/your-repo-name.git
 cd your-repo-name
 
-2. **Create and activate a virtual environment** (optional but recommended):
+2. Create and activate a virtual environment (optional but recommended):
 
 python -m venv venv
 
@@ -42,12 +41,8 @@ venv\Scripts\activate
 
 # On macOS/Linux
 source venv/bin/activate
-Install dependencies:
 
-bash
-Copy
-Edit
-3. **Install Dependencies**
+3. Install Dependencies
 pip install -r requirements.txt
 
 Run the App
